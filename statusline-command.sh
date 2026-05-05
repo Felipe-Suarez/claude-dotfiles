@@ -72,7 +72,25 @@ fi
 if [ -n "$seven_pct" ]; then
   seven_int=$(LC_ALL=C awk "BEGIN {printf \"%.0f\", $seven_pct}")
   scolor=$(usage_color "$seven_int")
-  seven_line=$(printf "%bweek (7d): %s%%%b" "$scolor" "$seven_int" "$C_RESET")
+  seven_reset=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
+  seven_remaining=""
+  if [ -n "$seven_reset" ]; then
+    now=$(date +%s)
+    delta=$((seven_reset - now))
+    if [ "$delta" -gt 0 ]; then
+      d=$((delta / 86400))
+      h=$(((delta % 86400) / 3600))
+      m=$(((delta % 3600) / 60))
+      if [ "$d" -gt 0 ]; then
+        seven_remaining=$(printf " (reset %dd%dh)" "$d" "$h")
+      elif [ "$h" -gt 0 ]; then
+        seven_remaining=$(printf " (reset %dh%dm)" "$h" "$m")
+      else
+        seven_remaining=$(printf " (reset %dm)" "$m")
+      fi
+    fi
+  fi
+  seven_line=$(printf "%bweek (7d): %s%%%s%b" "$scolor" "$seven_int" "$seven_remaining" "$C_RESET")
 fi
 
 # --- Cost ---

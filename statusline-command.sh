@@ -19,7 +19,10 @@ usage_color() {
 }
 
 # --- Model ---
-model=$(echo "$input" | jq -r '.model.display_name // "unknown"' | sed 's/1M context/1M ctx/')
+# Mostrar sólo el nombre del modelo (ej "Opus 4.8"); quitar cualquier paréntesis
+# de contexto (ej " (1M context)") que es redundante con el medidor ctx de abajo
+# y no se actualiza al cambiar de modelo.
+model=$(echo "$input" | jq -r '.model.display_name // "unknown"' | sed -E 's/ *\([^)]*(context|ctx)[^)]*\)//I')
 
 # --- Context window ---
 used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
